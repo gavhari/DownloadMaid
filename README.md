@@ -1,16 +1,20 @@
 # FolderMaid
 
-A lightweight CLI tool that automatically organizes files in your Downloads folder by grouping them into subfolders based on file extension.
+Lightweight CLI tool that automatically organizes files by grouping them into extension-based subfolders. Written in Rust, zero non-essential dependencies.
 
 ## Features
 
-- **Extension-based organization** — groups files into folders named after their extension (pdf/, jpg/, zip/, etc.)
-- **Dry-run mode** — preview changes before applying them
-- **Duplicate handling** — automatically renames duplicates with counters (file(1).pdf, file(2).pdf)
-- **Error resilience** — logs errors for individual files but continues processing
-- **Cross-device support** — handles moves across different filesystems
-- **Hidden file filtering** — skips hidden files (starting with `.`)
-- **Zero dependencies** — uses only Rust stdlib
+- **Extension-based sorting** — files grouped into folders named after extension (`pdf/`, `jpg/`, `zip/`, etc.)
+- **Configurable via TOML** — target path, recursion, blacklist patterns, schedule, dry-run mode
+- **CLI args override config** — per-run overrides for path, dry-run, recursion
+- **Dry-run mode** — preview changes before moving anything
+- **Duplicate handling** — auto-renames with counters (`file(1).pdf`, `file(2).pdf`)
+- **Blacklist** — exclude directories or file patterns from processing
+- **Error resilience** — logs per-file errors, continues processing rest
+- **Cross-device moves** — falls back to copy+delete when rename fails across filesystems
+- **Hidden file filtering** — skips files starting with `.`
+- **Docker support** — deploy as container with cron scheduling
+- **Zero heavy dependencies** — only uses Rust stdlib, `toml`, `walkdir`, `glob`, `dirs`
 
 ## Installation
 
@@ -22,7 +26,7 @@ cd FolderMaid
 cargo build --release
 ```
 
-The binary will be at `target/release/foldermaid`.
+Binary at `target/release/foldermaid`.
 
 ### Install Locally
 
@@ -30,23 +34,48 @@ The binary will be at `target/release/foldermaid`.
 cargo install --path .
 ```
 
-## Usage
-
-### Basic Usage
+### Docker
 
 ```bash
-# Organize ~/Downloads (default)
-foldermaid
-
-# Organize a custom folder
-foldermaid /path/to/folder
-
-# Preview changes without moving files
-foldermaid --dry-run
-
-# Preview changes in custom folder
-foldermaid /path/to/folder --dry-run
+docker build -t foldermaid .
+docker run -d \
+  -v ~/Downloads:/data \
+  -v ~/.config/foldermaid:/config \
+  foldermaid
 ```
+
+See [Docker deployment docs](docs/superpowers/specs/2026-06-17-docker-deploy-design.md).
+
+## Usage
+
+### Basic
+
+```bash
+foldermaid                        # Organize ~/Downloads
+foldermaid /path/to/folder        # Custom folder
+foldermaid --dry-run              # Preview only
+foldermaid /path --dry-run        # Preview on custom folder
+foldermaid --no-recursive         # Flat mode, no subdir recursion
+```
+
+### Configuration
+
+Optional config at `~/.config/foldermaid/config.toml`:
+
+```toml
+path = "/home/user/Downloads"
+recursive = true
+dry_run = false
+schedule = "0 * * * *"
+
+blacklist = [
+    "node_modules",
+    ".git",
+    "*.tmp",
+]
+```
+
+CLI flags override matching config fields at runtime.
 
 ### Example
 
@@ -59,7 +88,7 @@ Downloads/
 └── README
 ```
 
-After running `foldermaid`:
+After `foldermaid`:
 ```
 Downloads/
 ├── pdf/
@@ -74,17 +103,19 @@ Downloads/
 
 ### Behavior
 
-- **Regular files only** — skips directories and symlinks
-- **Hidden files skipped** — files starting with `.` are ignored
-- **Extensions lowercase** — `PDF` becomes `pdf/`
-- **No extension → `others/`** — files without extensions go to `others/` folder
-- **Duplicate handling** — if `file.pdf` exists in `pdf/`, the next one becomes `file(1).pdf`
-- **Cross-device moves** — automatically falls back to copy+delete when needed
-- **Error handling** — logs errors for individual files, continues with others
+| Rule | Detail |
+|------|--------|
+| Files only | Skips directories and symlinks |
+| Hidden skipped | Files starting with `.` ignored |
+| Lowercase ext | `PDF` → `pdf/`, `Tar.Gz` → `gz/` |
+| No extension | Goes to `others/` |
+| Duplicates | `file.pdf` exists → `file(1).pdf` |
+| Cross-device | Auto copy+delete fallback |
+| Errors | Logged per-file, rest continues |
 
 ## Development
 
-### Running Tests
+### Tests
 
 ```bash
 cargo test
@@ -94,13 +125,20 @@ cargo test
 
 ```
 src/
-└── main.rs          # Single-file implementation
+├── main.rs        # Entry point, orchestration
+├── lib.rs         # Module exports
+├── cli.rs         # CLI argument parsing
+├── config.rs      # TOML config loading and merge
+├── models.rs      # Data types (FileEntry, Stats, OrganizeResult)
+├── scanner.rs     # Filesystem scanning
+└── organizer.rs   # File movement logic
 tests/
 └── integration_test.rs
 docs/
-├── superpowers/
-│   ├── specs/       # Design specifications
-│   └── plans/       # Implementation plans
+└── superpowers/
+    ├── specs/     # Design specifications
+    └── plans/     # Implementation plans
+Dockerfile         # Container build
 ```
 
 ## License
@@ -109,4 +147,4 @@ MIT
 
 ## Contributing
 
-Issues and pull requests welcome at https://github.com/gavhari/FolderMaid
+Issues and PRs welcome at https://github.com/gavhari/FolderMaid

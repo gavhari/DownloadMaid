@@ -100,14 +100,18 @@ fn organize_files(
     let mut stats = Stats::default();
     
     for entry in entries {
-        let folder = determine_folder(entry.extension);
+        let folder = determine_folder(entry.extension.clone());
         let dest_dir = base_path.join(&folder);
         
         if !dest_dir.exists() {
             if dry_run {
                 println!("[dry-run] Would create folder: {}/", folder);
             } else {
-                fs::create_dir(&dest_dir)?;
+                if let Err(e) = fs::create_dir(&dest_dir) {
+                    eprintln!("Error creating folder {}: {}", folder, e);
+                    stats.errors += 1;
+                    continue;
+                }
             }
             stats.folders_created += 1;
         }
@@ -115,12 +119,16 @@ fn organize_files(
         let dest_file = get_unique_dest_path(&entry.path, &dest_dir);
         
         if dry_run {
-            println!("[dry-run] {} → {}/{}", entry.name, folder, entry.name);
+            println!("[dry-run] {} → {}/{}", entry.name, folder, dest_file.file_name().unwrap().to_str().unwrap());
         } else {
-            move_file(&entry.path, &dest_file)?;
+            match move_file(&entry.path, &dest_file) {
+                Ok(_) => stats.files_moved += 1,
+                Err(e) => {
+                    eprintln!("Error moving {}: {}", entry.name, e);
+                    stats.errors += 1;
+                }
+            }
         }
-        
-        stats.files_moved += 1;
     }
     
     Ok(stats)

@@ -13,6 +13,29 @@ struct FileEntry {
     extension: Option<String>,
 }
 
+#[derive(Default)]
+struct Stats {
+    files_moved: usize,
+    folders_created: usize,
+    errors: usize,
+}
+
+#[derive(Debug)]
+struct OrganizeError {
+    file_name: String,
+    message: String,
+}
+
+impl std::error::Error for OrganizeError {}
+
+impl std::fmt::Display for OrganizeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}: {}", self.file_name, self.message)
+    }
+}
+
+type OrganizeResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 fn get_default_downloads_path() -> PathBuf {
     let home = env::var("HOME").expect("HOME not set");
     PathBuf::from(home).join("Downloads")
@@ -42,6 +65,52 @@ fn parse_args() -> Result<Config, String> {
     Ok(Config { path, dry_run })
 }
 
+fn determine_folder(extension: Option<String>) -> String {
+    extension.unwrap_or_else(|| "others".to_string())
+}
+
+fn move_file(src: &Path, dst: &Path) -> OrganizeResult<()> {
+    if fs::rename(src, dst).is_err() {
+        fs::copy(src, dst)?;
+        fs::remove_file(src)?;
+    }
+    Ok(())
+}
+
+fn organize_files(
+    entries: Vec<FileEntry>,
+    base_path: &Path,
+    dry_run: bool,
+) -> OrganizeResult<Stats> {
+    let mut stats = Stats::default();
+    
+    for entry in entries {
+        let folder = determine_folder(entry.extension);
+        let dest_dir = base_path.join(&folder);
+        
+        if !dest_dir.exists() {
+            if dry_run {
+                println!("[dry-run] Would create folder: {}/", folder);
+            } else {
+                fs::create_dir(&dest_dir)?;
+            }
+            stats.folders_created += 1;
+        }
+        
+        let dest_file = dest_dir.join(&entry.name);
+        
+        if dry_run {
+            println!("[dry-run] {} → {}/{}", entry.name, folder, entry.name);
+        } else {
+            move_file(&entry.path, &dest_file)?;
+        }
+        
+        stats.files_moved += 1;
+    }
+    
+    Ok(stats)
+}
+
 fn main() {
     let config = match parse_args() {
         Ok(cfg) => cfg,
@@ -51,8 +120,29 @@ fn main() {
         }
     };
     
-    println!("Target: {}", config.path.display());
-    println!("Dry run: {}", config.dry_run);
+    let prefix = if config.dry_run { "[dry-run] " } else { "" };
+    println!("{}DownloadMaid — Organizing {}", prefix, config.path.display());
+    println!();
+    
+    let entries = match scan_directory(&config.path) {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("Error scanning directory: {}", e);
+            std::process::exit(1);
+        }
+    };
+    
+    let stats = match organize_files(entries, &config.path, config.dry_run) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("Error organizing files: {}", e);
+            std::process::exit(1);
+        }
+    };
+    
+    println!();
+    println!("{}Done: {} files processed, {} folders created, {} errors.",
+        prefix, stats.files_moved, stats.folders_created, stats.errors);
 }
 
 fn scan_directory(path: &Path) -> Result<Vec<FileEntry>, std::io::Error> {
@@ -117,6 +207,13 @@ mod tests {
         
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].name, "visible.txt");
+    }
+    
+    #[test]
+    fn test_determine_destination_folder() {
+        assert_eq!(determine_folder(Some("pdf".to_string())), "pdf");
+        assert_eq!(determine_folder(None), "others");
+        assert_eq!(determine_folder(Some("ZIP".to_string())), "ZIP");
     }
     
     #[test]

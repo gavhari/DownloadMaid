@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub recursive: bool,
     pub dry_run: bool,
     pub blacklist: Vec<String>,
+    pub schedule: String,
 }
 
 fn default_path() -> PathBuf {
@@ -21,6 +22,10 @@ fn default_recursive() -> bool {
     true
 }
 
+fn default_schedule() -> String {
+    "0 * * * *".to_string()
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
@@ -28,6 +33,7 @@ impl Default for AppConfig {
             recursive: default_recursive(),
             dry_run: false,
             blacklist: Vec::new(),
+            schedule: default_schedule(),
         }
     }
 }
@@ -62,11 +68,18 @@ pub fn parse_config_file(path: &Path) -> Option<AppConfig> {
         })
         .unwrap_or_else(Vec::new);
 
+    let schedule_val = toml_val
+        .get("schedule")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .unwrap_or_else(default_schedule);
+
     Some(AppConfig {
         path: path_val,
         recursive: recursive_val,
         dry_run: dry_run_val,
         blacklist: blacklist_val,
+        schedule: schedule_val,
     })
 }
 

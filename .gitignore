@@ -1,3 +1,20 @@
+# Rust build artifacts
 /target
 **/*.rs.bk
-Cargo.lock
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local config (keep docker/config.toml as reference; ignore local overrides)
+config.local.toml
+
+# Logs / runtime output
+*.log

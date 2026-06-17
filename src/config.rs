@@ -70,6 +70,21 @@ pub fn parse_config_file(path: &Path) -> Option<AppConfig> {
     })
 }
 
+impl AppConfig {
+    pub fn merge_cli_args(mut self, cli: crate::cli::CliArgs) -> Self {
+        if let Some(path) = cli.path {
+            self.path = path;
+        }
+        if let Some(dry_run) = cli.dry_run {
+            self.dry_run = dry_run;
+        }
+        if let Some(recursive) = cli.recursive {
+            self.recursive = recursive;
+        }
+        self
+    }
+}
+
 pub fn load_config() -> AppConfig {
     let mut config = AppConfig::default();
     if let Some(config_dir) = dirs::config_dir() {

@@ -6,3 +6,6 @@ edition = "2021"
 [[bin]]
 name = "downloadmaid"
 path = "src/main.rs"
+
+[dev-dependencies]
+tempfile = "3"

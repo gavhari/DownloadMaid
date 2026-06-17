@@ -1,0 +1,3 @@
+path = "/data"
+schedule = "0 * * * *"
+dry_run = false

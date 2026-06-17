@@ -69,6 +69,21 @@ fn determine_folder(extension: Option<String>) -> String {
     extension.unwrap_or_else(|| "others".to_string())
 }
 
+fn get_unique_dest_path(src: &Path, dest_dir: &Path) -> PathBuf {
+    let file_name = src.file_name().unwrap().to_str().unwrap();
+    let mut dest = dest_dir.join(file_name);
+    let mut counter = 1;
+    
+    while dest.exists() {
+        let stem = src.file_stem().unwrap().to_str().unwrap();
+        let ext = src.extension().and_then(|s| s.to_str()).map(|s| format!(".{}", s)).unwrap_or_default();
+        dest = dest_dir.join(format!("{}({}){}", stem, counter, ext));
+        counter += 1;
+    }
+    
+    dest
+}
+
 fn move_file(src: &Path, dst: &Path) -> OrganizeResult<()> {
     if fs::rename(src, dst).is_err() {
         fs::copy(src, dst)?;
@@ -97,7 +112,7 @@ fn organize_files(
             stats.folders_created += 1;
         }
         
-        let dest_file = dest_dir.join(&entry.name);
+        let dest_file = get_unique_dest_path(&entry.path, &dest_dir);
         
         if dry_run {
             println!("[dry-run] {} → {}/{}", entry.name, folder, entry.name);
@@ -223,5 +238,24 @@ mod tests {
         assert_eq!(get_extension("file"), None);
         assert_eq!(get_extension(".hidden"), None);
         assert_eq!(get_extension("file.tar.gz"), Some("gz".to_string()));
+    }
+    
+    #[test]
+    fn test_unique_dest_path() {
+        let temp = TempDir::new().unwrap();
+        let dir = temp.path();
+        
+        let src = PathBuf::from("/somewhere/file.txt");
+        
+        assert_eq!(
+            get_unique_dest_path(&src, dir).file_name().unwrap(),
+            "file.txt"
+        );
+        
+        File::create(dir.join("file.txt")).unwrap();
+        assert_eq!(
+            get_unique_dest_path(&src, dir).file_name().unwrap(),
+            "file(1).txt"
+        );
     }
 }

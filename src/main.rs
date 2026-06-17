@@ -1,26 +1,18 @@
+mod models;
+mod config;
+mod cli;
+mod scanner;
+mod organizer;
+
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use models::{FileEntry, Stats, OrganizeResult};
 
 struct Config {
     path: PathBuf,
     dry_run: bool,
 }
-
-struct FileEntry {
-    name: String,
-    path: PathBuf,
-    extension: Option<String>,
-}
-
-#[derive(Default)]
-struct Stats {
-    files_moved: usize,
-    folders_created: usize,
-    errors: usize,
-}
-
-type OrganizeResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn get_default_downloads_path() -> PathBuf {
     let home = env::var("HOME").expect("HOME not set");

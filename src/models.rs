@@ -13,4 +13,4 @@ pub struct Stats {
     pub errors: usize,
 }
 
-pub type OrganizeResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub type OrganizeResult<T> = Result<T, Box<dyn std::error::Error>>;

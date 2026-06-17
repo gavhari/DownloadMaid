@@ -1,10 +1,10 @@
 [package]
-name = "downloadmaid"
+name = "foldermaid"
 version = "0.2.0"
 edition = "2021"
 
 [[bin]]
-name = "downloadmaid"
+name = "foldermaid"
 path = "src/main.rs"
 
 [dependencies]

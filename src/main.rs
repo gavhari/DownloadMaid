@@ -15,7 +15,7 @@ fn main() {
 
     let prefix = if config.dry_run { "[dry-run] " } else { "" };
     println!(
-        "{}DownloadMaid — Organizing {}",
+        "{}FolderMaid — Organizing {}",
         prefix,
         config.path.display()
     );

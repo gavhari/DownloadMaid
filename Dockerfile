@@ -12,8 +12,8 @@ FROM alpine:latest
 
 RUN apk add --no-cache dcron
 
-COPY --from=builder /app/target/release/downloadmaid /usr/local/bin/downloadmaid
-COPY docker/config.toml /etc/downloadmaid/config.toml
+COPY --from=builder /app/target/release/foldermaid /usr/local/bin/foldermaid
+COPY docker/config.toml /etc/foldermaid/config.toml
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh

@@ -1,4 +1,4 @@
-use downloadmaid::config::{parse_config_file, AppConfig};
+use foldermaid::config::{parse_config_file, AppConfig};
 use std::path::PathBuf;
 use std::io::Write;
 use tempfile::NamedTempFile;

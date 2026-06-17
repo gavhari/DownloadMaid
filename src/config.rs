@@ -101,7 +101,7 @@ impl AppConfig {
 pub fn load_config() -> AppConfig {
     let mut config = AppConfig::default();
     if let Some(config_dir) = dirs::config_dir() {
-        let config_path = config_dir.join("downloadmaid").join("config.toml");
+        let config_path = config_dir.join("foldermaid").join("config.toml");
         if let Some(file_config) = parse_config_file(&config_path) {
             config = file_config;
         }

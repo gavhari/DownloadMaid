@@ -1,4 +1,4 @@
-# DownloadMaid
+# FolderMaid
 
 A lightweight CLI tool that automatically organizes files in your Downloads folder by grouping them into subfolders based on file extension.
 
@@ -17,12 +17,12 @@ A lightweight CLI tool that automatically organizes files in your Downloads fold
 ### From Source
 
 ```bash
-git clone git@github.com:gavhari/DownloadMaid.git
-cd DownloadMaid
+git clone git@github.com:gavhari/FolderMaid.git
+cd FolderMaid
 cargo build --release
 ```
 
-The binary will be at `target/release/downloadmaid`.
+The binary will be at `target/release/foldermaid`.
 
 ### Install Locally
 
@@ -36,16 +36,16 @@ cargo install --path .
 
 ```bash
 # Organize ~/Downloads (default)
-downloadmaid
+foldermaid
 
 # Organize a custom folder
-downloadmaid /path/to/folder
+foldermaid /path/to/folder
 
 # Preview changes without moving files
-downloadmaid --dry-run
+foldermaid --dry-run
 
 # Preview changes in custom folder
-downloadmaid /path/to/folder --dry-run
+foldermaid /path/to/folder --dry-run
 ```
 
 ### Example
@@ -59,7 +59,7 @@ Downloads/
 └── README
 ```
 
-After running `downloadmaid`:
+After running `foldermaid`:
 ```
 Downloads/
 ├── pdf/
@@ -109,4 +109,4 @@ MIT
 
 ## Contributing
 
-Issues and pull requests welcome at https://github.com/gavhari/DownloadMaid
+Issues and pull requests welcome at https://github.com/gavhari/FolderMaid

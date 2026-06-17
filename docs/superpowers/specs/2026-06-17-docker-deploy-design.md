@@ -1,11 +1,11 @@
-# Docker Deployment for DownloadMaid
+# Docker Deployment for FolderMaid
 
 **Date:** 2026-06-17
 **Status:** Approved Design
 
 ## Overview
 
-Containerized DownloadMaid that runs on a schedule to auto-organize a mounted Downloads folder. Single-image, cron-based daemon using multistage Rust build.
+Containerized FolderMaid that runs on a schedule to auto-organize a mounted Downloads folder. Single-image, cron-based daemon using multistage Rust build.
 
 ## Architecture
 

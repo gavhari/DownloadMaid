@@ -5,7 +5,7 @@ use std::process::Command;
 
 #[test]
 fn test_full_workflow() {
-    let test_dir = PathBuf::from("/tmp/downloadmaid_test");
+    let test_dir = PathBuf::from("/tmp/foldermaid_test");
 
     let _ = fs::remove_dir_all(&test_dir);
     fs::create_dir(&test_dir).unwrap();
@@ -51,7 +51,7 @@ fn test_full_workflow() {
 
 #[test]
 fn test_dry_run_no_changes() {
-    let test_dir = PathBuf::from("/tmp/downloadmaid_dry_test");
+    let test_dir = PathBuf::from("/tmp/foldermaid_dry_test");
 
     let _ = fs::remove_dir_all(&test_dir);
     fs::create_dir(&test_dir).unwrap();
